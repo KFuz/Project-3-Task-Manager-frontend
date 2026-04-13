@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function Dashboard({ user }) {
   const [tasks, setTasks] = useState([])

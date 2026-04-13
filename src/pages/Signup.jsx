@@ -27,36 +27,108 @@ function Signup() {
   };
 
   return (
-    <div>
-      <h1>Sign Up</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Username:</label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit">Sign Up</button>
-      </form>
-      {errorMessage && <p style={{ color: 'red' }} role="alert">{errorMessage}</p>}
+    <div style={styles.page}>
+      <div style={styles.box}>
+        <h1 style={styles.title}>Sign Up</h1>
+
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.inputGroup}>
+            <label htmlFor="username" style={styles.label}>Username</label>
+            <input
+              style={styles.input}
+              id="username"
+              name="username"
+              type="text"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label htmlFor="password" style={styles.label}>Password</label>
+            <input
+              style={styles.input}
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button type="submit" style={styles.button}>Sign Up</button>
+        </form>
+
+        {errorMessage && (
+          <p style={styles.error} role="alert">
+            {errorMessage}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: '90vh',
+    backgroundColor: '#f5efe6',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px',
+  },
+  box: {
+    backgroundColor: '#fff7d6',
+    padding: '35px',
+    borderRadius: '18px',
+    width: '100%',
+    maxWidth: '450px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+  },
+  title: {
+    marginBottom: '25px',
+    color: '#1f1f1f',
+    textAlign: 'center',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '18px',
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  label: {
+    color: '#1f1f1f',
+    fontWeight: '500',
+  },
+  input: {
+    padding: '12px',
+    borderRadius: '10px',
+    border: '1px solid #d8cba7',
+    backgroundColor: '#ffffff',
+    color: '#1f1f1f',
+    outline: 'none',
+  },
+  button: {
+    backgroundColor: '#1f1f1f',
+    color: '#ffffff',
+    border: 'none',
+    padding: '12px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    marginTop: '8px',
+  },
+  error: {
+    color: '#b00020',
+    marginTop: '16px',
+    textAlign: 'center',
+  },
+};
 
 export default Signup;
