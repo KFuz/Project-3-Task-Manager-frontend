@@ -1,36 +1,118 @@
 import { useEffect, useState } from 'react'
+import {
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask
+} from '../services/taskService'
 
 function Dashboard({ user }) {
   const [tasks, setTasks] = useState([])
   const [input, setInput] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [editingTaskId, setEditingTaskId] = useState(null)
+  const [editedTaskName, setEditedTaskName] = useState('')
 
-  const handleAddTask = () => {
-    if (!input.trim()) return
-
-    const newTask = {
-      id: Date.now(),
-      title: input,
-      done: false,
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        const foundTasks = await getAllTasks()
+        setTasks(foundTasks)
+      } catch (err) {
+        console.log(err)
+        setErrorMessage('Could not load tasks')
+      }
     }
 
-    setTasks([...tasks, newTask])
-    setInput('')
+    fetchTasks()
+  }, [])
+
+  const handleAddTask = async () => {
+    if (!input.trim()) return
+
+    try {
+      const newTask = await createTask({
+        taskName: input,
+        taskStatus: 'To Do'
+      })
+
+      setTasks([newTask, ...tasks])
+      setInput('')
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Could not add task')
+    }
   }
 
-  const handleDeleteTask = (taskId) => {
-    const filteredTasks = tasks.filter((task) => task.id !== taskId)
-    setTasks(filteredTasks)
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteTask(taskId)
+      const filteredTasks = tasks.filter((task) => task._id !== taskId)
+      setTasks(filteredTasks)
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Could not delete task')
+    }
   }
 
-  const handleToggleDone = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        return { ...task, done: !task.done }
-      }
-      return task
-    })
+  const handleStatusChange = async (task) => {
+    let newStatus = 'To Do'
 
-    setTasks(updatedTasks)
+    if (task.taskStatus === 'To Do') {
+      newStatus = 'In Progress'
+    } else if (task.taskStatus === 'In Progress') {
+      newStatus = 'Complete'
+    } else {
+      newStatus = 'To Do'
+    }
+
+    try {
+      const updatedTask = await updateTask(task._id, {
+        taskName: task.taskName,
+        taskStatus: newStatus
+      })
+
+      const updatedTasks = tasks.map((oneTask) =>
+        oneTask._id === task._id ? updatedTask : oneTask
+      )
+
+      setTasks(updatedTasks)
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Could not update task')
+    }
+  }
+
+  const handleStartEdit = (task) => {
+    setEditingTaskId(task._id)
+    setEditedTaskName(task.taskName)
+  }
+
+  const handleSaveEdit = async (task) => {
+    if (!editedTaskName.trim()) return
+
+    try {
+      const updatedTask = await updateTask(task._id, {
+        taskName: editedTaskName,
+        taskStatus: task.taskStatus
+      })
+
+      const updatedTasks = tasks.map((oneTask) =>
+        oneTask._id === task._id ? updatedTask : oneTask
+      )
+
+      setTasks(updatedTasks)
+      setEditingTaskId(null)
+      setEditedTaskName('')
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Could not update task name')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null)
+    setEditedTaskName('')
   }
 
   return (
@@ -52,38 +134,91 @@ function Dashboard({ user }) {
           </button>
         </div>
 
+        {errorMessage && <p style={styles.error}>{errorMessage}</p>}
+
         <div style={styles.taskArea}>
           {tasks.length === 0 ? (
             <p style={styles.empty}>No tasks yet.</p>
           ) : (
             tasks.map((task) => (
-              <div key={task.id} style={styles.taskCard}>
-                <div>
+              <div key={task._id} style={styles.taskCard}>
+                <div style={styles.leftSide}>
+                  {editingTaskId === task._id ? (
+                    <input
+                      type="text"
+                      value={editedTaskName}
+                      onChange={(e) => setEditedTaskName(e.target.value)}
+                      style={styles.editInput}
+                    />
+                  ) : (
+                    <p
+                      style={{
+                        ...styles.taskTitle,
+                        textDecoration:
+                          task.taskStatus === 'Complete' ? 'line-through' : 'none',
+                        opacity: task.taskStatus === 'Complete' ? 0.6 : 1,
+                      }}
+                    >
+                      {task.taskName}
+                    </p>
+                  )}
+
                   <p
                     style={{
-                      ...styles.taskTitle,
-                      textDecoration: task.done ? 'line-through' : 'none',
-                      opacity: task.done ? '0.6' : '1',
+                      ...styles.statusText,
+                      backgroundColor:
+                        task.taskStatus === 'Complete'
+                          ? '#d8ead3'
+                          : task.taskStatus === 'In Progress'
+                          ? '#f6e7b2'
+                          : '#efe4c8',
                     }}
                   >
-                    {task.title}
+                    {task.taskStatus}
                   </p>
                 </div>
 
                 <div style={styles.btnGroup}>
-                  <button
-                    onClick={() => handleToggleDone(task.id)}
-                    style={styles.doneBtn}
-                  >
-                    {task.done ? 'Undo' : 'Done'}
-                  </button>
+                  {editingTaskId === task._id ? (
+                    <>
+                      <button
+                        onClick={() => handleSaveEdit(task)}
+                        style={styles.doneBtn}
+                      >
+                        Save
+                      </button>
 
-                  <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    style={styles.deleteBtn}
-                  >
-                    Delete
-                  </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        style={styles.cancelBtn}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(task)}
+                        style={styles.doneBtn}
+                      >
+                        Change Status
+                      </button>
+
+                      <button
+                        onClick={() => handleStartEdit(task)}
+                        style={styles.editBtn}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteTask(task._id)}
+                        style={styles.deleteBtn}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))
@@ -111,10 +246,12 @@ const styles = {
   heading: {
     color: '#1f1f1f',
     marginBottom: '8px',
+    textAlign: 'center',
   },
   text: {
     color: '#444',
     marginBottom: '25px',
+    textAlign: 'center',
   },
   inputRow: {
     display: 'flex',
@@ -139,6 +276,10 @@ const styles = {
     cursor: 'pointer',
     fontWeight: '600',
   },
+  error: {
+    color: '#b00020',
+    marginBottom: '16px',
+  },
   taskArea: {
     display: 'flex',
     flexDirection: 'column',
@@ -157,18 +298,52 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '16px',
+  },
+  leftSide: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    flex: 1,
   },
   taskTitle: {
     margin: 0,
     color: '#1f1f1f',
     fontSize: '16px',
   },
+  statusText: {
+    margin: 0,
+    color: '#444',
+    fontSize: '13px',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    display: 'inline-block',
+    width: 'fit-content',
+  },
   btnGroup: {
     display: 'flex',
     gap: '8px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   doneBtn: {
     backgroundColor: '#f6e7b2',
+    color: '#1f1f1f',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  },
+  editBtn: {
+    backgroundColor: '#efe4c8',
+    color: '#1f1f1f',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  },
+  cancelBtn: {
+    backgroundColor: '#d9d9d9',
     color: '#1f1f1f',
     border: 'none',
     padding: '8px 12px',
@@ -182,6 +357,15 @@ const styles = {
     padding: '8px 12px',
     borderRadius: '8px',
     cursor: 'pointer',
+  },
+  editInput: {
+    padding: '8px 10px',
+    borderRadius: '8px',
+    border: '1px solid #d6c7a1',
+    backgroundColor: '#ffffff',
+    color: '#1f1f1f',
+    outline: 'none',
+    minWidth: '220px',
   },
 }
 
