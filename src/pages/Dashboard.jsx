@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Comments from "../components/Comments"
 import {
   getAllTasks,
   createTask,
@@ -220,6 +221,9 @@ function Dashboard({ user }) {
                     </>
                   )}
                 </div>
+                <div style={{ width: "100%", marginTop: "10px" }}>
+                <Comments taskId={task._id} />
+                </div>
               </div>
             ))
           )}
@@ -296,8 +300,9 @@ const styles = {
     borderRadius: '12px',
     padding: '14px 16px',
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: '16px',
   },
   leftSide: {
