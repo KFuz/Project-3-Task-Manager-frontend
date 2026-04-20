@@ -33,7 +33,7 @@ const handleSubmit = async (e) => {
     setComments([...comments, newComment])
   }
 
-  setText("")
+ setText("")
 }
 
 const handleDelete = async (id) => {
@@ -42,7 +42,7 @@ const handleDelete = async (id) => {
 }
 
 const handleEdit = (comment) => {
-  setText(comment.text)
+  setText(comment.Content)
   setEditId(comment._id)
 }
 
@@ -61,7 +61,7 @@ const handleEdit = (comment) => {
 
     {comments.map((c) => (
       <div key={c._id}>
-        <p>{c.text}</p>
+        <p>{c.Content}</p>
 
         <button onClick={() => handleEdit(c)}>Edit</button>
         <button onClick={() => handleDelete(c._id)}>Delete</button>
