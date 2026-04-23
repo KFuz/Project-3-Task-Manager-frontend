@@ -27,7 +27,7 @@ function App() {
     <div>
       <Navbar user={user} setUser={setUser} />
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/" element={<Homepage user={user} />} />
         <Route path="/sign-up" element={!user ? <SignUp /> : <Navigate to='/dashboard'/>} />
         <Route path="/sign-in" element={!user ? <SignIn setUser={setUser} /> : <Navigate to='/dashboard'/>} />
         <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to='/sign-in'/>} />
