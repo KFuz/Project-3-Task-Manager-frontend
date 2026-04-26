@@ -13,6 +13,7 @@ function Signup() {
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
+
   };
 
   async function handleSubmit(event){
@@ -20,6 +21,7 @@ function Signup() {
 
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/sign-up`, formData);
+      alert("Successfully Signed Up! Please Procceed to Sign-In.")
       navigate('/sign-in');
     } catch (err) {
       setErrorMessage(err.response?.data?.err || 'An error occurred during sign up');
@@ -39,7 +41,7 @@ function Signup() {
               id="username"
               name="username"
               type="text"
-              value={formData.username}
+              value={formData.username.toLowerCase()}
               onChange={handleChange}
               required
             />

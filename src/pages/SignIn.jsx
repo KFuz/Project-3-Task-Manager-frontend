@@ -45,7 +45,7 @@ function SignIn({ setUser }) {
               id="username"
               name="username"
               type="text"
-              value={formData.username}
+              value={formData.username.toLowerCase()}
               onChange={handleChange}
               required
             />
